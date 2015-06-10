@@ -1,5 +1,6 @@
 import elasticsearch
 from DateTime import DateTime
+import json
 
 import BeautifulSoup
 try:
@@ -10,39 +11,58 @@ except ImportError:
     from urllib2 import urlopen
 
 url = "http://www.travelpod.com/travel-blog-entries/bridie.sheehan/1/1433692810/tpod.html"
+es = elasticsearch.Elasticsearch()
+#TODO: See if URL already exists and 'forceReIndex' is true
 response = urlopen(url)
 html = response.read().decode('utf-8')
 soup = BeautifulSoup.BeautifulSoup(html)
-postBody = soup.find(id="post")
-postBodyText = ''
-for t in postBody.contents:
-    if type(t) is BeautifulSoup.NavigableString:
-        postBodyText += t
-print postBodyText
-print '-------'
+data = {}
 
-locationStack = []
-date = ''
-titleContents = soup.find("p", attrs={'class' : 'meta'}).contents
-for t in titleContents:
-    if type(t) is BeautifulSoup.Tag:
-        if t.name == 'a':
-            locationStack.append(t.string)
-        elif t.name == 'span':
-            date = DateTime(t.string)
-            #date = time.strptime(t.string, '%A, %B %d, %Y')
-print locationStack
-print date
+def parseMainContent ():
+    postBody = soup.find(id="post")
+    #TODO-LOW: If PostBody Not Found, Throw Error.  Write failing test for this, it means the site changed
+    postBodyText = ''
+    #TODO-MID: Find Images
+    for t in postBody.contents:
+        if type(t) is BeautifulSoup.NavigableString:
+            postBodyText += t
+    data['text']= postBodyText,
+    data['length'] = len(postBodyText)
 
-es = elasticsearch.Elasticsearch()
-es.index(index='blogs', doc_type='blog', body={
-    'url':url,
-    'postDate': date.strftime('%Y-%m-%dT%H:%M:%S%z'),
-    'city':locationStack[0],
-    'state':locationStack[1],
-    'country':locationStack[2],
-    'text': postBodyText,
-    'length': len(postBodyText)
-})
+def parseLocation():
+    locationStack = []
+    date = ''
+    titleContents = soup.find("p", attrs={'class' : 'meta'}).contents
+    #TODO-LOW: If titleContents Not Found, Throw Error.  Write failing test for this, it means the site changed
+    #TODO-MID: Find Images
+    for t in titleContents:
+        if type(t) is BeautifulSoup.Tag:
+            if t.name == 'a':
+                locationStack.append(t.string)
+            elif t.name == 'span':
+                date = DateTime(t.string)
+
+    data['city'] = locationStack[0]
+    data['state'] = locationStack[1]
+    data ['country'] = locationStack[2]
+    data['postDate'] = date.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+def parseAuthor ():
+    print 'do this'
+
+def parseTrip ():
+    print 'do this too'
+
+def saveBlogAndAuthor ():
+    result = es.index(index='blogs', doc_type='blog', body=json.dumps (data))
+    print result
+    #TODO-NOW Save Author
+
+if __name__ == '__main__':
+    parseMainContent()
+    parseLocation()
+    parseAuthor()
+    parseTrip ()
+    saveBlogAndAuthor()
 
 
