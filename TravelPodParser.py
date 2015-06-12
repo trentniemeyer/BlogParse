@@ -2,12 +2,7 @@ import elasticsearch
 from DateTime import DateTime
 import json
 import BeautifulSoup
-try:
-    # For Python 3.0 and later
-    from urllib.request import urlopen
-except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen
+import Util
 
 class Parser (object):
 
@@ -15,8 +10,7 @@ class Parser (object):
         self.url = url
         self.es = elasticsearch.Elasticsearch()
         #TODO: See if URL already exists and 'for`ceReIndex' is true
-        self.response = urlopen(url)
-        self.html = self.response.read().decode('utf-8')
+        self.html = Util.geturldata(url)
         self.soup = BeautifulSoup.BeautifulSoup(self.html)
         self.data = {}
         self.data['url'] = url
@@ -24,12 +18,13 @@ class Parser (object):
 class BlogParser (Parser):
 
     def __init__(self, url, forceReindex):
+        print url
         Parser.__init__(self, url, forceReindex)
 
     def parseall (self):
         self.parsemaincontent()
         self.parselocation()
-        self.parseauthor()
+        self.getauthorurl()
         self.parsetrip()
 
     def parsemaincontent (self):
@@ -42,6 +37,7 @@ class BlogParser (Parser):
                 postBodyText += t
         self.data['text']= postBodyText,
         self.data['length'] = len(postBodyText)
+        self.data['title'] = self.soup.find("meta", {"name": "twitter:name"})['content']
 
     def parselocation(self):
         locationStack = []
@@ -61,18 +57,26 @@ class BlogParser (Parser):
         self.data ['country'] = locationStack[2]
         self.data['postDate'] = date.strftime('%Y-%m-%dT%H:%M:%S%z')
 
-    def save (self):
-        result = self.es.index(index='blogs', doc_type='blog', body=json.dumps (self.data))
-        return result
-
-    def parseauthor (self):
+    def getauthorurl (self):
         authorHref = self.soup.find("a", attrs={'class' : 'avatar'})['href']
         authorLink = "http://www.travelpod.com" + authorHref
-        self.authorparser = AuthorParser (authorLink, False)
-        self.authorparser.parselogsummary()
+        return authorLink
+        #self.authorparser = AuthorParser (authorLink, False)
+        #self.authorparser.parselogsummary()
 
     def parsetrip (self):
         self.data['trip'] = 'http://www.travelpod.com' + self.soup.find("a", attrs={'title' : 'See more entries in this travel blog'})['href']
+
+    def save (self, author = None):
+
+        if author:
+            #this will throw an error if the id doesn't exist
+            if 'id' not in author:
+                raise AttributeError ("Author needs an id")
+            self.data['author'] = author
+
+        result = self.es.index(index='blogs', doc_type='blog', body=json.dumps (self.data))
+        return result
 
 class AuthorParser (Parser):
 
@@ -91,10 +95,32 @@ class AuthorParser (Parser):
     def parsetrips (self):
         print ("TODO")
 
-    def save (self):
-        result = self.es.index(index='authors', doc_type='author', body=json.dumps (self.data))
+    def save (self, blogs = None):
+        id = Util.generatebase64uuid()
+        if ('id' in self.data):
+            id = self.data['id']
+            del self.data['id']
+
+        if (blogs is not None):
+            for blog in blogs:
+                del blog['text']
+                del blog['author']
+
+        self.data['blogs'] = blogs
+
+        result = self.es.index(id = id, index='authors', doc_type='author', body=json.dumps (self.data))
         return result
 
+class AuthorTripParser (Parser):
+
+    def __init__(self, url, forcereindex = False):
+        Parser.__init__(self, url, forcereindex)
+
+    def parsebloglinks (self):
+        self.bloglist = []
+        for div in self.soup.findAll("div", {"class":"blog_data"}):
+            self.bloglist.append(div.contents[1]['href'])
+        return self.bloglist
 
 
 
