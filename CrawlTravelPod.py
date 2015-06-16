@@ -16,21 +16,22 @@ if __name__ == '__main__':
     authorid = Util.generatebase64uuid()
     author = authorparser.data
     author['id'] = authorid
-    currentsavedblog = currentblogparser.save(author)
-    currentblogparser.data['id'] = currentsavedblog['_id']
-    blogs.append(currentblogparser.data)
 
-    tripparser = TravelPodParser.AuthorTripParser ("http://www.travelpod.com/travel-blog/bridie.sheehan/1/tpod.html")
-    tripblogsurls = tripparser.parsebloglinks()
+    currentblogparser.blog.setauthor(author)
+    currentblogparser.blog.save(html = currentblogparser.html)
+    #blogs.append(currentblogparser.data)
 
-    answer = raw_input("You are about to parse %d which may spike or DOS their servers. type 'y' continue" % len (tripblogsurls))
+    # tripparser = TravelPodParser.AuthorTripParser ("http://www.travelpod.com/travel-blog/bridie.sheehan/1/tpod.html")
+    # tripblogsurls = tripparser.parsebloglinks()
 
-    if answer == 'y':
-        for blogurl in tripblogsurls:
-            currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl, False)
-            currentblogparser.parseall()
-            currentsavedblog = currentblogparser.save(author)
-            currentblogparser.data['id'] = currentsavedblog['_id']
-            blogs.append(currentblogparser.data)
+    # answer = raw_input("You are about to parse %d which may spike or DOS their servers. type 'y' continue" % len (tripblogsurls))
+    #
+    # if answer == 'y':
+    #     for blogurl in tripblogsurls:
+    #         currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl, False)
+    #         currentblogparser.parseall()
+    #         currentsavedblog = currentblogparser.save(author)
+    #         currentblogparser.data['id'] = currentsavedblog['_id']
+    #         blogs.append(currentblogparser.data)
 
-    print authorparser.save(blogs)
+    #print authorparser.save(blogs)
