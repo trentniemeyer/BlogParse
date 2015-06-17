@@ -1,4 +1,5 @@
 import elasticsearch
+from elasticsearch import Elasticsearch
 from elasticsearch_dsl import DocType, String, Date, Integer, Search, Nested
 from datetime import datetime
 import json
@@ -9,19 +10,17 @@ class Parser (object):
 
     def __init__(self, url, forceReindex):
         self.url = url
-        self.es = elasticsearch.Elasticsearch()
-        #TODO: See if URL already exists and 'for`ceReIndex' is true
+        self.client = Elasticsearch()
+        self.itemexists = False
 
-        itemid = self.getitemid()
-
-        if (itemid == False):
+        self.itemid = self.getitemid()
+        if (self.itemid == False):
             self.html = Util.geturldata(url)
         else:
-            self.html = Util.getobjectins3(itemid)
+            self.html = Util.getobjectfromazure(self.itemid)
+            self.itemexists = True
 
         self.soup = BeautifulSoup.BeautifulSoup(self.html)
-        self.data = {}
-        self.data['url'] = url
 
     def getitemid (self):
         raise NotImplementedError("you must define the item lookup for this class")
@@ -48,29 +47,57 @@ class Blog(DocType):
     )
 
     class Meta:
-        index = 'testblogs'
+        index = 'blogs'
 
     def save(self, ** kwargs):
         self.length = len(self.body)
-        blogid = Util.generatebase64uuid()
-        Util.putobjectins3(blogid, kwargs['html'])
-        self.meta.id = blogid
-        return super(Blog, self).save()
+        return super(Blog, self).save(** kwargs)
 
     def setauthor (self, author):
-        #this will throw an error if the id doesn't exist
-        if 'id' not in author:
-            raise AttributeError ("Author needs an id")
+
+        if (hasattr(author.meta, 'id') == False):
+            authorid = Util.generatebase64uuid()
+            author.meta.id = authorid
+
         self.author = {
-            'id' : author['id'],
-            'url' : author['url'],
-            'username' : author['username'],
-            'photo' : author['photo'],
-            'blogcount' : author['blogcount']
+            'id' : author.meta.id,
+            'url' : author.url,
+            'username' : author.username,
+            'photo' : author.photo,
+            'blogcount' : author.blogcount
         }
 
+class Author (DocType):
+    username = String (index="not_analyzed")
+    photo = String (index="not_analyzed")
+    blogcount = Integer()
+    url = String(analyzer='snowball', fields={'rawurl': String(index='not_analyzed')})
+    blogurls = String(index='not_analyzed')
 
-#TODO-HIGH Clean up old way of storing data
+    blogs = Nested(
+        properties={
+            'id': String(index='not_analyzed'),
+            'url': String(analyzer='snowball', fields={'rawurl': String(index='not_analyzed')}),
+            'length' : Integer(),
+            'trip' : String(analyzer='snowball', fields={'rawurl': String(index='not_analyzed')}),
+            'title': String(analyzer='snowball', fields={'rawtitle': String(index='not_analyzed')}),
+            'city' : String(index='not_analyzed'),
+            'state' : String(index='not_analyzed'),
+            'country' : String(index='not_analyzed'),
+            'postdate' : Date()
+        }
+    )
+
+    class Meta:
+        index = 'authors'
+
+    def add_blog (self, blog):
+        self.blogs.append (
+            {'id': blog.meta.id, 'url': blog.url, 'length:': blog.length, 'trip': blog.trip, 'title': blog.title,
+             'country':blog.country, 'state': blog.state, 'city': blog.city, 'postdate': blog.postdate
+            }
+        )
+
 class BlogParser (Parser):
 
     def __init__(self, url, forceReindex):
@@ -80,8 +107,21 @@ class BlogParser (Parser):
         self.blog.url = url
 
     def getitemid(self):
-        #TODO-HIGH: Query and get id
-        return False
+        response = self.client.search(
+            index="blogs",
+            body={
+                "query":{
+                    "match": {
+                      "url.rawurl": self.url
+                    }
+                  }
+            }
+        )
+
+        if (len (response['hits']['hits']) > 0):
+            return response['hits']['hits'][0]['_id']
+        else:
+            return False
 
     def parseall (self):
         self.parsemaincontent()
@@ -103,7 +143,6 @@ class BlogParser (Parser):
 
     def parselocation(self):
         locationStack = []
-        date = ''
         titleContents = self.soup.find("p", attrs={'class' : 'meta'}).contents
         for t in titleContents:
             if type(t) is BeautifulSoup.Tag:
@@ -124,41 +163,63 @@ class BlogParser (Parser):
     def parsetrip (self):
         self.blog.trip = 'http://www.travelpod.com' + self.soup.find("a", attrs={'title' : 'See more entries in this travel blog'})['href']
 
+    def save (self):
+        if (self.itemexists == False):
+            blogid = Util.generatebase64uuid()
+            Util.putobjectinazure(blogid, self.url, self.html)
+            self.blog.meta.id = blogid
+        else:
+            self.blog.meta.id = self.itemid
+
+        self.blog.save()
+
 class AuthorParser (Parser):
 
     def __init__(self, url, forceReindex):
+        Author.init()
         Parser.__init__(self, url, forceReindex)
+        self.author = Author()
+        self.author.url = url
 
     def getitemid(self):
-        return False
+        response = self.client.search(
+            index="authors",
+            body={
+                "query":{
+                    "match": {
+                      "url.rawurl": self.url
+                    }
+                  }
+            }
+        )
+
+        if (len (response['hits']['hits']) > 0):
+            return response['hits']['hits'][0]['_id']
+        else:
+            return False
 
     def parselogsummary (self):
-        self.data['username'] = self.soup.find("meta", {"property":"og:title"})['content']
+        self.author.username = self.soup.find("meta", {"property":"og:title"})['content']
         summary = self.soup.find("div", attrs={'class' : 'bubble'}).contents
         for t in summary:
             if type(t) is BeautifulSoup.Tag:
                 if t.name == 'span':
-                    self.data['blogcount'] = str(t.string).split(' ')[0]
-        self.data['photo'] = self.soup.find(id="profile_pic")['src']
+                    self.author.blogcount = str(t.string).split(' ')[0]
+        self.author.photo = self.soup.find(id="profile_pic")['src']
 
     def parsetrips (self):
         print ("TODO")
 
-    def save (self, blogs = None):
-        id = Util.generatebase64uuid()
-        if ('id' in self.data):
-            id = self.data['id']
-            del self.data['id']
+    def save (self):
+        if (self.itemexists == False):
+            if (hasattr(self.author.meta, 'id') == False):
+                authorid = Util.generatebase64uuid()
+                self.author.meta.id = authorid
+            Util.putobjectinazure(self.author.meta.id, self.url, self.html)
+        else:
+            self.author.meta.id = self.itemid
 
-        if (blogs is not None):
-            for blog in blogs:
-                del blog['text']
-                del blog['author']
-
-        self.data['blogs'] = blogs
-
-        result = self.es.index(id = id, index='authors', doc_type='author', body=json.dumps (self.data))
-        return result
+        self.author.save()
 
 class AuthorTripParser (Parser):
     def getitemid(self):

@@ -10,6 +10,7 @@ import chardet
 import boto
 from elasticsearch_dsl.connections import connections
 from boto.s3.key import Key
+from azure.storage import BlobService
 
 connections.create_connection(hosts=['localhost'])
 
@@ -39,7 +40,13 @@ def getobjectins3 (strkey):
     s3key.key = strkey
     return s3key.get_contents_as_string()
 
+def putobjectinazure (strkey, url, data):
+    blob_service = BlobService(account_name='wanderight', account_key='j93gPK4ruU87ntW8JYAgCtHSN9C6w6V/7dMRpdqxtNQ521TIy6hh82jtc6tF40Oz+zgSxu4G4H9LlQKZ32E5YQ==')
+    blob_service.put_block_blob_from_text(
+        'blogparse', strkey, data,
+        x_ms_meta_name_values={'url':url}
+    )
 
-
-
-
+def getobjectfromazure (strkey):
+    blob_service = BlobService(account_name='wanderight', account_key='j93gPK4ruU87ntW8JYAgCtHSN9C6w6V/7dMRpdqxtNQ521TIy6hh82jtc6tF40Oz+zgSxu4G4H9LlQKZ32E5YQ==')
+    return blob_service.get_blob_to_text('blogparse', strkey)
