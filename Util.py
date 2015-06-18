@@ -27,14 +27,14 @@ def uuidfrombase64string(string):
     return uuid.UUID(bytes=(string + '==').replace('_', '/').decode('base64'))
 
 def putobjectins3 (strkey, data):
-    connection = boto.connect_s3('AKIAIC6W4Q4N2DVAWLIQ', '8KiMgPLXvLaSRe8gRJNZvhowKoH2x0ReRPPM9xMh')
+    connection = boto.connect_s3('', '')
     bucket = connection.get_bucket('blogparse')
     s3key = Key(bucket)
     s3key.key = strkey
     s3key.set_contents_from_string(data)
 
 def getobjectins3 (strkey):
-    connection = boto.connect_s3('AKIAIC6W4Q4N2DVAWLIQ', '8KiMgPLXvLaSRe8gRJNZvhowKoH2x0ReRPPM9xMh')
+    connection = boto.connect_s3('', '')
     bucket = connection.get_bucket('blogparse')
     s3key = Key(bucket)
     s3key.key = strkey
