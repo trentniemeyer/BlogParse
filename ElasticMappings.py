@@ -2,12 +2,12 @@ from elasticsearch_dsl import DocType, String, Date, Integer, Nested
 import Util
 
 class Blog(DocType):
-    city = String(index='not_analyzed')
-    state = String(index='not_analyzed')
-    country = String(index='not_analyzed')
-    title = String(analyzer='snowball', fields={'rawtitle': String(index='not_analyzed')})
+    city = String(index='not_analyzed', store='true')
+    state = String(index='not_analyzed', store='true')
+    country = String(index='not_analyzed', store='true')
+    title = String(analyzer='snowball', store='true', fields={'rawtitle': String(index='not_analyzed')})
     url = String(analyzer='snowball', fields={'rawurl': String(index='not_analyzed')})
-    body = String(analyzer='snowball')
+    body = String(analyzer='snowball', store='true')
     trip = String(index='not_analyzed')
     postdate = Date()
     length = Integer()
