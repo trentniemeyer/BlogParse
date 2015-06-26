@@ -3,19 +3,23 @@ from datetime import datetime
 import BeautifulSoup
 import Util
 import ElasticMappings
+import re
 
 class Parser (object):
 
-    def __init__(self, url, forceReindex):
+    def __init__(self, url, forceReindex = True):
         self.url = url
         self.client = Elasticsearch()
         self.itemexists = False
+
+        if (forceReindex == False):
+            raise NotImplementedError("forceReindex = False hasn't been implemented")
 
         self.itemid = self.getitemid()
         if (self.itemid == False):
             self.html = Util.geturldata(url)
         else:
-            self.html = Util.getobjectfromazure(self.itemid)
+            self.html = Util.gettextobjectfromazure(self.itemid)
             self.itemexists = True
 
         self.soup = BeautifulSoup.BeautifulSoup(self.html)
@@ -25,7 +29,7 @@ class Parser (object):
 
 class BlogParser (Parser):
 
-    def __init__(self, url, forceReindex):
+    def __init__(self, url, forceReindex = True):
         ElasticMappings.Blog.init()
         Parser.__init__(self, url, forceReindex)
         self.blog = ElasticMappings.Blog()
@@ -58,10 +62,17 @@ class BlogParser (Parser):
         postBody = self.soup.find(id="post")
 
         postBodyText = ''
-        #TODO-MID: Find Images
+
         for t in postBody.contents:
             if type(t) is BeautifulSoup.NavigableString:
                 postBodyText += t
+
+        firstthumbnailimagediv = self.soup.find('div',  attrs={'class':re.compile('^inline-thumb')})
+
+        if (firstthumbnailimagediv):
+            thumbnailimage = firstthumbnailimagediv.findNext('img')['src']
+            thumbnailimage = thumbnailimage.replace ("xlarge", "large")
+            self.blog.thumbnailimage = thumbnailimage
 
         self.blog.body = postBodyText
         self.blog.title = self.soup.find("meta", {"name": "twitter:name"})['content']
@@ -80,6 +91,9 @@ class BlogParser (Parser):
         self.blog.state = locationStack[1]
         self.blog.country = locationStack[2]
 
+    def parseimage (self):
+        self.soup.find()
+
     def getauthorurl (self):
         authorHref = self.soup.find("a", attrs={'class' : 'avatar'})['href']
         authorLink = "http://www.travelpod.com" + authorHref
@@ -91,16 +105,19 @@ class BlogParser (Parser):
     def save (self):
         if (self.itemexists == False):
             blogid = Util.generatebase64uuid()
-            Util.putobjectinazure(blogid, self.url, self.html)
+            Util.puttextobjectinazure(blogid, self.url, self.html)
             self.blog.meta.id = blogid
         else:
             self.blog.meta.id = self.itemid
+
+        if (hasattr(self.blog, 'thumbnailimage') and self.blog.thumbnailimage):
+            Util.copywebimageandputinazure(self.blog.meta.id, self.blog.thumbnailimage)
 
         self.blog.save()
 
 class AuthorParser (Parser):
 
-    def __init__(self, url, forceReindex):
+    def __init__(self, url, forceReindex = True):
         ElasticMappings.Author.init()
         Parser.__init__(self, url, forceReindex)
         self.author = ElasticMappings.Author()
@@ -140,7 +157,7 @@ class AuthorParser (Parser):
             if (hasattr(self.author.meta, 'id') == False):
                 authorid = Util.generatebase64uuid()
                 self.author.meta.id = authorid
-            Util.putobjectinazure(self.author.meta.id, self.url, self.html)
+            Util.puttextobjectinazure(self.author.meta.id, self.url, self.html)
         else:
             self.author.meta.id = self.itemid
 
@@ -150,7 +167,7 @@ class AuthorTripParser (Parser):
     def getitemid(self):
         return False
 
-    def __init__(self, url, forcereindex = False):
+    def __init__(self, url, forcereindex = True):
         Parser.__init__(self, url, forcereindex)
 
     def parsebloglinks (self):

@@ -9,6 +9,7 @@ class Blog(DocType):
     url = String(analyzer='snowball', fields={'rawurl': String(index='not_analyzed')})
     body = String(analyzer='snowball', store='true')
     trip = String(index='not_analyzed')
+    thumbnailimage = String(index='not_analyzed')
     postdate = Date()
     length = Integer()
 

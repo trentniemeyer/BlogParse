@@ -6,6 +6,7 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
+import urllib
 import chardet
 import boto
 from elasticsearch_dsl.connections import connections
@@ -27,26 +28,40 @@ def uuidfrombase64string(string):
     return uuid.UUID(bytes=(string + '==').replace('_', '/').decode('base64'))
 
 def putobjectins3 (strkey, data):
-    connection = boto.connect_s3('AKIAIC6W4Q4N2DVAWLIQ', '8KiMgPLXvLaSRe8gRJNZvhowKoH2x0ReRPPM9xMh')
+    connection = boto.connect_s3('', '')
     bucket = connection.get_bucket('blogparse')
     s3key = Key(bucket)
     s3key.key = strkey
     s3key.set_contents_from_string(data)
 
 def getobjectins3 (strkey):
-    connection = boto.connect_s3('AKIAIC6W4Q4N2DVAWLIQ', '8KiMgPLXvLaSRe8gRJNZvhowKoH2x0ReRPPM9xMh')
+    connection = boto.connect_s3('', '')
     bucket = connection.get_bucket('blogparse')
     s3key = Key(bucket)
     s3key.key = strkey
     return s3key.get_contents_as_string()
 
-def putobjectinazure (strkey, url, data):
+def puttextobjectinazure (strkey, url, data):
     blob_service = BlobService(account_name='wanderight', account_key='j93gPK4ruU87ntW8JYAgCtHSN9C6w6V/7dMRpdqxtNQ521TIy6hh82jtc6tF40Oz+zgSxu4G4H9LlQKZ32E5YQ==')
     blob_service.put_block_blob_from_text(
         'blogparse', strkey, data,
         x_ms_meta_name_values={'url':url}
     )
 
-def getobjectfromazure (strkey):
+def copywebimageandputinazure (strkey, url):
+    blob_service = BlobService(account_name='wanderight', account_key='j93gPK4ruU87ntW8JYAgCtHSN9C6w6V/7dMRpdqxtNQ521TIy6hh82jtc6tF40Oz+zgSxu4G4H9LlQKZ32E5YQ==')
+
+    buf = urllib.urlopen(url).read()
+    blob_service.put_block_blob_from_bytes('blogparse', 'images/' + strkey, buf,
+                                           x_ms_blob_content_type='image/jpg', x_ms_meta_name_values={'url':url}
+    )
+
+def gettextobjectfromazure (strkey):
     blob_service = BlobService(account_name='wanderight', account_key='j93gPK4ruU87ntW8JYAgCtHSN9C6w6V/7dMRpdqxtNQ521TIy6hh82jtc6tF40Oz+zgSxu4G4H9LlQKZ32E5YQ==')
     return blob_service.get_blob_to_text('blogparse', strkey)
+
+def deletefromazure (strPrefix):
+    blob_service = BlobService(account_name='wanderight', account_key='j93gPK4ruU87ntW8JYAgCtHSN9C6w6V/7dMRpdqxtNQ521TIy6hh82jtc6tF40Oz+zgSxu4G4H9LlQKZ32E5YQ==')
+    blobsToDelete = blob_service.list_blobs('blogparse', prefix=strPrefix)
+    for b in blobsToDelete:
+        blob_service.delete_blob('blogparse', b.name)
