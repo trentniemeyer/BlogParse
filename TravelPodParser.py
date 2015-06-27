@@ -107,11 +107,11 @@ class BlogParser (Parser):
             blogid = Util.generatebase64uuid()
             Util.puttextobjectinazure(blogid, self.url, self.html)
             self.blog.meta.id = blogid
+
+            if (hasattr(self.blog, 'thumbnailimage') and self.blog.thumbnailimage):
+                Util.copywebimageandputinazure(self.blog.meta.id, self.blog.thumbnailimage)
         else:
             self.blog.meta.id = self.itemid
-
-        if (hasattr(self.blog, 'thumbnailimage') and self.blog.thumbnailimage):
-            Util.copywebimageandputinazure(self.blog.meta.id, self.blog.thumbnailimage)
 
         self.blog.save()
 
