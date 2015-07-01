@@ -98,7 +98,10 @@ class BlogParser (Parser):
 
         self.blog.city = locationStack[0]
         self.blog.state = locationStack[1]
-        self.blog.country = locationStack[2]
+        if (len(locationStack) == 3):
+            self.blog.country = locationStack[2]
+        else:
+            self.blog.country = 'United States'
 
     def parseimage (self):
         self.soup.find()
