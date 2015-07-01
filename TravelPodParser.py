@@ -30,8 +30,6 @@ class Parser (object):
 
         self.soup = BeautifulSoup.BeautifulSoup(self.html)
 
-        self.logger.info("Parsing: {0}".format(url))
-
     def getitemid (self):
         raise NotImplementedError("you must define the item lookup for this class")
 
