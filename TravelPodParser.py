@@ -4,10 +4,14 @@ import BeautifulSoup
 import Util
 import ElasticMappings
 import re
+import LoggerConfig
+import logging
 
 class Parser (object):
 
-    def __init__(self, url, forceReindex = True):
+    def __init__(self, url, forceReindex = True, cookiedict = None):
+        self.logger = logging.getLogger(__name__)
+
         self.url = url
         self.client = Elasticsearch()
         self.itemexists = False
@@ -17,18 +21,23 @@ class Parser (object):
 
         self.itemid = self.getitemid()
         if (self.itemid == False):
-            self.html = Util.geturldata(url)
+            self.html = Util.geturldata(url, cookiedict)
+            self.logger.info("Parsing: {0}".format(url))
         else:
             self.html = Util.gettextobjectfromazure(self.itemid)
             self.itemexists = True
+            self.logger.info("RE-Parsing from Azure".format(url))
 
         self.soup = BeautifulSoup.BeautifulSoup(self.html)
+
+        self.logger.info("Parsing: {0}".format(url))
 
     def getitemid (self):
         raise NotImplementedError("you must define the item lookup for this class")
 
 class BlogParser (Parser):
 
+    #TODO: Set this to false, as this page is a moving target and we'll be reparsing links
     def __init__(self, url, forceReindex = True):
         ElasticMappings.Blog.init()
         Parser.__init__(self, url, forceReindex)
@@ -176,8 +185,18 @@ class AuthorTripParser (Parser):
             self.bloglist.append(div.contents[1]['href'])
         return self.bloglist
 
+class MainSectionParser (Parser):
+    def getitemid(self):
+        return False
 
+    def __init__(self, url, forcereindex = True):
+        cookies = {'tweb_order':'time'} #sort by time so we can parse latest first (instead of most popular)
+        Parser.__init__(self, url, forcereindex, cookies)
 
-
-
+    def parsebloglinks (self):
+        self.bloglist = []
+        for div in self.soup.findAll('div',  attrs={'class':re.compile('^blog_info$')}):
+            if (Util.istextenglish(div.findAll('p')[1].text)):
+                self.bloglist.append(div.findNext ('a')['href']);
+        return self.bloglist
 

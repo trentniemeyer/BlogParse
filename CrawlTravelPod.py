@@ -1,28 +1,35 @@
 import TravelPodParser
-import time
-import Util
+import LoggerConfig
+import logging
 
 if __name__ == '__main__':
 
-    currentblogparser = TravelPodParser.BlogParser("http://www.travelpod.com/travel-blog-entries/bridie.sheehan/1/1433692810/tpod.html")
-    currentblogparser.parseall()
+    logger = logging.getLogger(__name__)
 
-    authorLink = currentblogparser.getauthorurl()
-    authorparser = TravelPodParser.AuthorParser (authorLink)
-    authorparser.parselogsummary()
+    mainSection = TravelPodParser.MainSectionParser ('http://www.travelpod.com/blogs/0/Africa.html#')
+    blogs = mainSection.parsebloglinks();
 
-    currentblogparser.blog.setauthor(authorparser.author)
-    currentblogparser.save()
+    for blog in blogs:
+        #blog = "http://www.travelpod.com/travel-blog-entries/bridie.sheehan/1/1433692810/tpod.html"
 
-    authorparser.author.add_blog(currentblogparser.blog)
-    authorparser.save()
+        currentblogparser = TravelPodParser.BlogParser(blog)
+        currentblogparser.parseall()
 
-    tripparser = TravelPodParser.AuthorTripParser (currentblogparser.blog.trip)
-    tripblogsurls = tripparser.parsebloglinks()
+        authorLink = currentblogparser.getauthorurl()
+        authorparser = TravelPodParser.AuthorParser (authorLink)
+        authorparser.parselogsummary()
 
-    answer = raw_input("You are about to parse %d which may spike or DOS their servers. type 'y' continue" % len (tripblogsurls))
+        currentblogparser.blog.setauthor(authorparser.author)
+        currentblogparser.save()
 
-    if answer == 'y':
+        authorparser.author.add_blog(currentblogparser.blog)
+        authorparser.save()
+
+        tripparser = TravelPodParser.AuthorTripParser (currentblogparser.blog.trip)
+        tripblogsurls = tripparser.parsebloglinks()
+
+        logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
+
         for blogurl in tripblogsurls:
             currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
             currentblogparser.parseall()
