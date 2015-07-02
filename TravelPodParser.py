@@ -13,7 +13,7 @@ class Parser (object):
         self.logger = logging.getLogger(__name__)
 
         self.url = url
-        self.client = Elasticsearch()
+        self.client = Elasticsearch([Util.config['eshost']])
         self.itemexists = False
 
         if (forceReindex == False):
@@ -94,12 +94,23 @@ class BlogParser (Parser):
                 elif t.name == 'span':
                     self.blog.postdate = datetime.strptime(t.string, '%A, %B %d, %Y')
 
-        self.blog.city = locationStack[0]
-        self.blog.state = locationStack[1]
+        self.blog.city = ''
+        self.blog.state = ''
+        self.blog.country = ''
         if (len(locationStack) == 3):
             self.blog.country = locationStack[2]
+            self.blog.state = locationStack[1]
+            self.blog.city = locationStack[0]
+        elif (len(locationStack) == 2):
+            self.blog.country = locationStack[1]
+            self.blog.state = locationStack[0]
+
+            if (not Util.iscountry(self.blog.country)):
+                self.blog.country = ''
+                self.blog.state = locationStack[1]
+                self.blog.city = locationStack[0]
         else:
-            self.blog.country = 'United States'
+            raise NotImplementedError("Single location field not handled yet")
 
     def parseimage (self):
         self.soup.find()

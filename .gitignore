@@ -2,3 +2,5 @@
 *.log
 
 Skunkworx.py
+
+*.pyc

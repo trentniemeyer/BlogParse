@@ -2,15 +2,18 @@ from contextlib import closing
 import uuid
 import urllib2
 
-import langid
 from elasticsearch_dsl.connections import connections
 from azure.storage import BlobService
-
-connections.create_connection(hosts=['localhost'])
+import langid
+import pycountry
+import difflib
 
 config = {
-    'container': 'blogparsedev'    #blogparse or blogparsedev
+    'container': 'blogparse',       #blogparse or blogparsedev
+    'eshost': '137.135.93.224'           #localhost or 137.135.93.224
 }
+
+connections.create_connection(hosts=[config['eshost']])
 
 def geturldata(url, cookiedict = None):
 
@@ -56,3 +59,19 @@ def deletefromazure (strPrefix):
 
 def istextenglish (text):
     return langid.classify(text)[0] == 'en'
+
+def iscountry (location):
+    try:
+        pycountry.countries.get(name=location)
+        return True
+    except:
+        countriesnotinpycountry = ['vietnam', 'laos', 'tanzania']
+        if (location.lower() in countriesnotinpycountry):
+            return True
+        return False
+
+def isclosecountry (location):
+    country_names = [x.name.lower() for x in pycountry.countries]
+    matching_countries = difflib.get_close_matches(location, country_names)
+    confidence = difflib.SequenceMatcher(None, matching_countries[0], location).ratio()
+    print confidence
