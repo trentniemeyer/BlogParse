@@ -1,3 +1,4 @@
+from incf.countryutils import transformations
 from contextlib import closing
 import uuid
 import urllib2
@@ -5,8 +6,6 @@ import urllib2
 from elasticsearch_dsl.connections import connections
 from azure.storage import BlobService
 import langid
-import pycountry
-import difflib
 
 config = {
     'container': 'blogparse',       #blogparse or blogparsedev
@@ -60,18 +59,9 @@ def deletefromazure (strPrefix):
 def istextenglish (text):
     return langid.classify(text)[0] == 'en'
 
-def iscountry (location):
+def isafrica (locaion):
     try:
-        pycountry.countries.get(name=location)
-        return True
+        return transformations.cn_to_ctn(locaion) == 'Africa'
     except:
-        countriesnotinpycountry = ['vietnam', 'laos', 'tanzania']
-        if (location.lower() in countriesnotinpycountry):
-            return True
         return False
 
-def isclosecountry (location):
-    country_names = [x.name.lower() for x in pycountry.countries]
-    matching_countries = difflib.get_close_matches(location, country_names)
-    confidence = difflib.SequenceMatcher(None, matching_countries[0], location).ratio()
-    print confidence

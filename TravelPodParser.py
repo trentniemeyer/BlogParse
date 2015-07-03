@@ -104,13 +104,10 @@ class BlogParser (Parser):
         elif (len(locationStack) == 2):
             self.blog.country = locationStack[1]
             self.blog.state = locationStack[0]
-
-            if (not Util.iscountry(self.blog.country)):
-                self.blog.country = ''
-                self.blog.state = locationStack[1]
-                self.blog.city = locationStack[0]
         else:
             raise NotImplementedError("Single location field not handled yet")
+
+        self.isafrica = Util.isafrica(self.blog.country)
 
     def parseimage (self):
         self.soup.find()

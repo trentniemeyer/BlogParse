@@ -69,8 +69,13 @@ class Author (DocType):
         index = 'authors'
 
     def add_blog (self, blog):
+
+        blogid = ''
+        if (blog.meta and blog.meta.id):
+            blogid = blog.meta.id
+
         self.blogs.append (
-            {'id': blog.meta.id, 'url': blog.url, 'length:': blog.length, 'trip': blog.trip, 'title': blog.title,
+            {'id': blogid, 'url': blog.url, 'length:': blog.length, 'trip': blog.trip, 'title': blog.title,
              'country':blog.country, 'state': blog.state, 'city': blog.city, 'postdate': blog.postdate
             }
         )

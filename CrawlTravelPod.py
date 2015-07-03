@@ -19,8 +19,9 @@ if __name__ == '__main__':
         authorparser = TravelPodParser.AuthorParser (authorLink)
         authorparser.parselogsummary()
 
-        currentblogparser.blog.setauthor(authorparser.author)
-        currentblogparser.save()
+        if (currentblogparser.isafrica):
+            currentblogparser.blog.setauthor(authorparser.author)
+            currentblogparser.save()
 
         authorparser.author.add_blog(currentblogparser.blog)
         authorparser.save()
@@ -34,8 +35,10 @@ if __name__ == '__main__':
             currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
             currentblogparser.parseall()
 
-            currentblogparser.blog.setauthor(authorparser.author)
-            currentblogparser.save()
+            if (currentblogparser.isafrica):
+                currentblogparser.blog.setauthor(authorparser.author)
+                currentblogparser.save()
+
             authorparser.author.add_blog(currentblogparser.blog)
 
         authorparser.save()
