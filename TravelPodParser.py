@@ -141,7 +141,10 @@ class AuthorParser (Parser):
     def loaditem(self, forcereindex = True, cookiedict = None):
         self.author = ElasticMappings.Author()
         self.author.url = self.url
-        return Parser.loaditem(self, forcereindex, cookiedict)
+        didload = Parser.loaditem(self, forcereindex, cookiedict)
+        if(self.itemexists):
+            self.author.get(id=self.itemid)
+        return didload
 
     def getitemid(self):
         response = self.client.search(
