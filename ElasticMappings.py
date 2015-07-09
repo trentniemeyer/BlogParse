@@ -75,7 +75,7 @@ class Author (DocType):
             blogid = blog.meta.id
 
         self.blogs.append (
-            {'id': blogid, 'url': blog.url, 'length:': blog.length, 'trip': blog.trip, 'title': blog.title,
+            {'id': blogid, 'url': blog.url, 'length:': len(blog.body), 'trip': blog.trip, 'title': blog.title,
              'country':blog.country, 'state': blog.state, 'city': blog.city, 'postdate': blog.postdate
             }
         )

@@ -4,43 +4,46 @@ import BeautifulSoup
 import Util
 import ElasticMappings
 import re
-import LoggerConfig
 import logging
 
 class Parser (object):
 
-    def __init__(self, url, forceReindex = True, cookiedict = None):
+    def __init__(self, url):
         self.logger = logging.getLogger(__name__)
-
         self.url = url
         self.client = Elasticsearch([Util.config['eshost']])
         self.itemexists = False
-
-        if (forceReindex == False):
-            raise NotImplementedError("forceReindex = False hasn't been implemented")
-
+        self.oktoparse = True
         self.itemid = self.getitemid()
-        if (self.itemid == False):
-            self.html = Util.geturldata(url, cookiedict)
-            self.logger.info("Parsing: {0}".format(url))
-        else:
-            self.html = Util.gettextobjectfromazure(self.itemid)
-            self.itemexists = True
-            self.logger.info("RE-Parsing from Azure".format(url))
-
-        self.soup = BeautifulSoup.BeautifulSoup(self.html)
 
     def getitemid (self):
         raise NotImplementedError("you must define the item lookup for this class")
 
+    def loaditem (self, forcereindex = True, cookiedict = None):
+        if (self.itemid == False):
+            self.html = Util.geturldata(self.url, cookiedict)
+            self.logger.info("Parsing: {0}".format(self.url))
+        elif (forcereindex):
+            self.html = Util.gettextobjectfromazure(self.itemid)
+            self.itemexists = True
+            self.logger.info("RE-Parsing from Azure".format(self.url))
+        else:
+            self.oktoparse = False
+
+        if (self.oktoparse):
+            self.soup = BeautifulSoup.BeautifulSoup(self.html)
+        else:
+            self.logger.info("skipping reindex for '{0}'".format(self.url))
+
+        return self.oktoparse
+
+
 class BlogParser (Parser):
 
-    #TODO: Set this to false, as this page is a moving target and we'll be reparsing links
-    def __init__(self, url, forceReindex = True):
-        ElasticMappings.Blog.init()
-        Parser.__init__(self, url, forceReindex)
+    def loaditem(self, forcereindex = True, cookiedict = None):
         self.blog = ElasticMappings.Blog()
-        self.blog.url = url
+        self.blog.url = self.url
+        return Parser.loaditem(self, forcereindex, cookiedict)
 
     def getitemid(self):
         response = self.client.search(
@@ -135,11 +138,10 @@ class BlogParser (Parser):
 
 class AuthorParser (Parser):
 
-    def __init__(self, url, forceReindex = True):
-        ElasticMappings.Author.init()
-        Parser.__init__(self, url, forceReindex)
+    def loaditem(self, forcereindex = True, cookiedict = None):
         self.author = ElasticMappings.Author()
-        self.author.url = url
+        self.author.url = self.url
+        return Parser.loaditem(self, forcereindex, cookiedict)
 
     def getitemid(self):
         response = self.client.search(
@@ -185,9 +187,6 @@ class AuthorTripParser (Parser):
     def getitemid(self):
         return False
 
-    def __init__(self, url, forcereindex = True):
-        Parser.__init__(self, url, forcereindex)
-
     def parsebloglinks (self):
         self.bloglist = []
         for div in self.soup.findAll("div", {"class":"blog_data"}):
@@ -198,9 +197,9 @@ class MainSectionParser (Parser):
     def getitemid(self):
         return False
 
-    def __init__(self, url, forcereindex = True):
-        cookies = {'tweb_order':'time'} #sort by time so we can parse latest first (instead of most popular)
-        Parser.__init__(self, url, forcereindex, cookies)
+    def loaditem(self, forcereindex = True, cookiedict = None):
+        cookiedict = {'tweb_order':'time'} #sort by time so we can parse latest first (instead of most popular)
+        Parser.loaditem(self,forcereindex, cookiedict)
 
     def parsebloglinks (self):
         self.bloglist = []
