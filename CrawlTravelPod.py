@@ -12,7 +12,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     init()
 
-    countries = [('Tanzania',5),('Kenya', 5),('Morocco', 5), ('Uganda',3), ('Zimbabwe',3)  ,('Ghana',3) ,('Mauritius', 1)]
+    countries = [('Kenya', 5),('Morocco', 5), ('Uganda',3), ('Zimbabwe',3)  ,('Ghana',3) ,('Mauritius', 1)]
     for (country, number) in countries:
 
         for i in range(0,number,1):
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
                     logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
 
-                    for blogurl in tripblogsurls:
+                    for blogurl in tripblogsurls[0:50]:
                         currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
                         if (currentblogparser.loaditem(False)):
                             currentblogparser.parseall()
