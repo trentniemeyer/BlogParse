@@ -43,24 +43,24 @@ if __name__ == '__main__':
                     authorparser.author.add_blog(currentblogparser.blog)
                     authorparser.save()
 
-                    tripparser = TravelPodParser.AuthorTripParser (currentblogparser.blog.trip)
-                    tripparser.loaditem()
-                    tripblogsurls = tripparser.parsebloglinks()
-
-                    logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
-
-                    for blogurl in tripblogsurls:
-                        currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
-                        if (currentblogparser.loaditem(False)):
-                            currentblogparser.parseall()
-
-                            if (currentblogparser.isafrica):
-                                currentblogparser.blog.setauthor(authorparser.author)
-                                currentblogparser.save()
-
-                            authorparser.author.add_blog(currentblogparser.blog)
-
-                    authorparser.save()
+                    # tripparser = TravelPodParser.AuthorTripParser (currentblogparser.blog.trip)
+                    # tripparser.loaditem()
+                    # tripblogsurls = tripparser.parsebloglinks()
+                    #
+                    # logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
+                    #
+                    # for blogurl in tripblogsurls:
+                    #     currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
+                    #     if (currentblogparser.loaditem(False)):
+                    #         currentblogparser.parseall()
+                    #
+                    #         if (currentblogparser.isafrica):
+                    #             currentblogparser.blog.setauthor(authorparser.author)
+                    #             currentblogparser.save()
+                    #
+                    #         authorparser.author.add_blog(currentblogparser.blog)
+                    #
+                    # authorparser.save()
 
 
 
