@@ -169,7 +169,8 @@ class AuthorParser (Parser):
         for t in summary:
             if type(t) is BeautifulSoup.Tag:
                 if t.name == 'span':
-                    self.author.blogcount = str(t.string).split(' ')[0]
+                    blogcount = str(t.string).split(' ')[0]
+                    self.author.blogcount = blogcount.translate(None, ",")
         self.author.photo = self.soup.find(id="profile_pic")['src']
 
     def parsetrips (self):
