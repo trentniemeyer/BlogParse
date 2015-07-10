@@ -116,7 +116,7 @@ class BlogParser (Parser):
         self.soup.find()
 
     def getauthorurl (self):
-        authorHref = self.soup.find("a", attrs={'class' : 'avatar'})['href']
+        authorHref = self.soup.find("div", attrs={'class':'profile'}).findNext ('a')['href']
         authorLink = "http://www.travelpod.com" + authorHref
         return authorLink
 
