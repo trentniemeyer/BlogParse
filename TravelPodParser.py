@@ -12,12 +12,14 @@ class Parser (object):
         self.logger = logging.getLogger(__name__)
         self.url = url
         self.client = Elasticsearch([Util.config['eshost']])
-        self.itemexists = False
         self.oktoparse = True
         self.itemid = self.getitemid()
 
     def getitemid (self):
         raise NotImplementedError("you must define the item lookup for this class")
+
+    def itemexists (self):
+        return self.itemid != False
 
     def loaditem (self, forcereindex = True, cookiedict = None):
         if (self.itemid == False):
@@ -25,7 +27,6 @@ class Parser (object):
             self.logger.info("Parsing: {0}".format(self.url))
         elif (forcereindex):
             self.html = Util.gettextobjectfromazure(self.itemid)
-            self.itemexists = True
             self.logger.info("RE-Parsing from Azure".format(self.url))
         else:
             self.oktoparse = False
@@ -124,7 +125,7 @@ class BlogParser (Parser):
         self.blog.trip = 'http://www.travelpod.com' + self.soup.find("a", attrs={'title' : 'See more entries in this travel blog'})['href']
 
     def save (self):
-        if (self.itemexists == False):
+        if (self.itemexists() == False):
             blogid = Util.generatebase64uuid()
             Util.puttextobjectinazure(blogid, self.url, self.html)
             self.blog.meta.id = blogid
@@ -142,7 +143,7 @@ class AuthorParser (Parser):
         self.author = ElasticMappings.Author()
         self.author.url = self.url
         didload = Parser.loaditem(self, forcereindex, cookiedict)
-        if(self.itemexists):
+        if(self.itemexists()):
             self.author.get(id=self.itemid)
         return didload
 
@@ -177,7 +178,7 @@ class AuthorParser (Parser):
         print ("TODO")
 
     def save (self):
-        if (self.itemexists == False):
+        if (self.itemexists() == False):
             if (hasattr(self.author.meta, 'id') == False):
                 authorid = Util.generatebase64uuid()
                 self.author.meta.id = authorid

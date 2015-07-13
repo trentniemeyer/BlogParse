@@ -1,5 +1,6 @@
 from elasticsearch_dsl import DocType, String, Date, Integer, Nested
 import Util
+from datetime import datetime
 
 class Blog(DocType):
     city = String(index='not_analyzed', store='true')
@@ -12,6 +13,7 @@ class Blog(DocType):
     thumbnailimage = String(index='not_analyzed')
     postdate = Date()
     length = Integer()
+    lastupdated = Date ()
 
     author = Nested(
         properties={
@@ -28,6 +30,7 @@ class Blog(DocType):
 
     def save(self, ** kwargs):
         self.length = len(self.body)
+        self.lastupdated = datetime.now()
         return super(Blog, self).save(** kwargs)
 
     def setauthor (self, author):
@@ -50,6 +53,7 @@ class Author (DocType):
     blogcount = Integer()
     url = String(analyzer='snowball', fields={'rawurl': String(index='not_analyzed')})
     blogurls = String(index='not_analyzed')
+    lastupdated = Date ()
 
     blogs = Nested(
         properties={
@@ -64,6 +68,11 @@ class Author (DocType):
             'postdate' : Date()
         }
     )
+
+
+    def save(self, ** kwargs):
+        self.lastupdated = datetime.now()
+        return super(Author, self).save(** kwargs)
 
     class Meta:
         index = 'authors'
