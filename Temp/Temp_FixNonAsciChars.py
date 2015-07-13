@@ -32,18 +32,22 @@ def test ():
 
 def fixallblogs ():
 
-    for i in range (0, 3500, 50):
+    response = ElasticMappings.Blog.search()[0:10000].execute()
 
-        response = ElasticMappings.Blog.search()[i:i+50].execute()
+    #logger.info("Processing blogs {0}-{1}".format(i, i+50))
 
-        logger.info("Processing blogs {0}-{1}".format(i, i+50))
+    for blog in response.hits:
+        try:
+            blog.body = BeautifulSoup.BeautifulSoup(blog.body, convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES).text
+            blog.save()
+        except Exception:
+            logger.exception("Couldn't parse blog id: {0}".format(blog.meta.id))
 
-        for blog in response.hits:
-            try:
-                blog.body = BeautifulSoup.BeautifulSoup(blog.body, convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES).text
-                blog.save()
-            except Exception:
-                logger.exception("Couldn't parse blog id: {0}".format(blog.meta.id))
+def fixsinleblog ():
+    blog = ElasticMappings.Blog.get(id='ZiApgicQEeWUMgANOhDXSA')
+
+    blog.body = BeautifulSoup.BeautifulSoup(blog.body, convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES).text
+    blog.save()
 
 
 fixallblogs ()
