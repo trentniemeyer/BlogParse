@@ -31,7 +31,7 @@ class Parser (object):
             self.oktoparse = False
 
         if (self.oktoparse):
-            self.soup = BeautifulSoup.BeautifulSoup(self.html)
+            self.soup = BeautifulSoup.BeautifulSoup(self.html, convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES)
         else:
             self.logger.info("skipping reindex for '{0}'".format(self.url))
 
