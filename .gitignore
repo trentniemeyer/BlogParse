@@ -32,3 +32,9 @@ Temp/Madagascar.dict
 Temp/Madagascar.mm
 
 Temp/Madagascar.mm.index
+
+*.dict
+
+*.mm
+
+*.index

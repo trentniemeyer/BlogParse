@@ -2,6 +2,7 @@ import TravelPodParser
 import LoggerConfig
 import logging
 import ElasticMappings
+import Util
 
 def init ():
     ElasticMappings.Blog.init()
@@ -36,7 +37,7 @@ if __name__ == '__main__':
                     authorparser.loaditem()
                     authorparser.parselogsummary()
 
-                    if (currentblogparser.isafrica):
+                    if (currentblogparser.isafrica and Util.istextenglish(currentblogparser.blog.body)):
                         currentblogparser.blog.setauthor(authorparser.author)
                         currentblogparser.save()
 
@@ -54,7 +55,7 @@ if __name__ == '__main__':
                         if (currentblogparser.loaditem(False)):
                             currentblogparser.parseall()
 
-                            if (currentblogparser.isafrica):
+                            if (currentblogparser.isafrica and Util.istextenglish(currentblogparser.blog.body)):
                                 currentblogparser.blog.setauthor(authorparser.author)
                                 currentblogparser.save()
 
