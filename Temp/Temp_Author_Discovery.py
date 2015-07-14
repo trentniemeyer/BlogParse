@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*
 from elasticsearch import  Elasticsearch
 import Util
 
@@ -8,22 +9,28 @@ from nltk.corpus import stopwords
 from gensim import corpora, models, similarities
 from pprint import pprint
 
+import LoggerConfig
+
 client = Elasticsearch([Util.config['eshost']])
+country = "All"
+#
+# response = client.search(
+#             index="blogs",
+#             body={
+#                 "size": "1000",
+#                 "query": {
+#                     "match": {
+#                       "country": country
+#                     }
+#                   }
+#             }
+#         )
 
 response = client.search(
             index="blogs",
             body={
-                "size": "30",
-                "query": {
-                    "nested": {
-                      "path": "author",
-                      "query": {
-                        "match": {
-                          "author.username": "Hippler"
-                        }
-                      }
-                    }
-                  }
+                "size": "5000",
+                "query": {"match_all": {}}
             }
         )
 
@@ -56,13 +63,16 @@ def ntlk_usage ():
         print bigram
 
 
-def genism_usage ():
+def gensim_usage ():
 
     documents = []
     for hit in response['hits']['hits']:
         documents.append(hit["_source"]["body"])
 
-    stops = [unicode(word) for word in stopwords.words('english')] + ['re:', 'fwd:', '-']
+    stops = [unicode(word) for word in stopwords.words('english')] + [u':-).', u'–', u'-']
+
+    print stops
+
     texts = [[word for word in document.lower().split() if word not in stops]
               for document in documents]
 
@@ -77,6 +87,37 @@ def genism_usage ():
 
     # pretty-printer
     dictionary = corpora.Dictionary(texts)
-    print(dictionary.token2id)
+    dictionary.save(country + '.dict')
+    #print(dictionary.token2id)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    corpora.MmCorpus.serialize(country + '.mm', corpus) # store to disk, for later use
+    #print corpus
 
-genism_usage()
+def gensim_partII():
+    dictionary = corpora.Dictionary.load(country + '.dict')
+    corpus = corpora.MmCorpus(country + '.mm')
+    print corpus
+    tfidf = models.TfidfModel(corpus)
+    corpus_tfidf = tfidf[corpus]
+    lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=50)
+    #corpus_lsi = lsi[corpus_tfidf]
+    print "LSI"
+    lsi.print_topics(50)
+    #for doc in corpus_lsi:
+    #    print(doc)
+
+    #print "LDA"
+    #lda = models.LdaModel (corpus, id2word=dictionary, num_topics=10)
+    #lda.print_topics(10)
+
+    #print "HDP"
+    #hdp = models.HdpModel(corpus, id2word=dictionary)
+    #hdp.print_topics(10)
+
+#TODO:  Check these clustering samples:
+        # http://stackoverflow.com/questions/6486738/clustering-using-latent-dirichlet-allocation-algo-in-gensim
+        #http://www.williamjohnbert.com/2012/05/an-introduction-to-gensim-topic-modelling-for-humans/
+        #http://brandonrose.org/clustering
+
+#gensim_usage()
+gensim_partII()
