@@ -59,9 +59,11 @@ def deletefromazure (strPrefix):
 def istextenglish (text):
     return langid.classify(text)[0] == 'en'
 
-def isafrica (locaion):
+def isafrica (location):
     try:
-        return transformations.cn_to_ctn(locaion) == 'Africa'
+        if location.startswith('Congo'):
+            return True
+        return transformations.cn_to_ctn(location) == 'Africa'
     except:
         return False
 
