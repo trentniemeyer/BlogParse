@@ -114,7 +114,7 @@ class BlogParser (Parser):
         self.isafrica = Util.isafrica(self.blog.country)
 
         if (self.isafrica == False):
-            self.logger.info(self.blog.countr + " is not an African country")
+            self.logger.info(self.blog.country + " is not an African country")
 
     def parseimage (self):
         self.soup.find()
