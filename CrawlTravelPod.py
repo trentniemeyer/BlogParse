@@ -8,6 +8,9 @@ def init ():
     ElasticMappings.Blog.init()
     ElasticMappings.Author.init()
 
+def shouldsaveblog(currentblogparser):
+    return currentblogparser.isafrica and Util.istextenglish(currentblogparser.blog.body) and len(currentblogparser.blog.body > 50)
+
 if __name__ == '__main__':
 
     logger = logging.getLogger(__name__)
@@ -37,7 +40,7 @@ if __name__ == '__main__':
                     authorparser.loaditem()
                     authorparser.parselogsummary()
 
-                    if (currentblogparser.isafrica and Util.istextenglish(currentblogparser.blog.body)):
+                    if (shouldsaveblog(currentblogparser)):
                         currentblogparser.blog.setauthor(authorparser.author)
                         currentblogparser.save()
 
@@ -55,7 +58,7 @@ if __name__ == '__main__':
                         if (currentblogparser.loaditem(False)):
                             currentblogparser.parseall()
 
-                            if (currentblogparser.isafrica and Util.istextenglish(currentblogparser.blog.body)):
+                            if (shouldsaveblog(currentblogparser)):
                                 currentblogparser.blog.setauthor(authorparser.author)
                                 currentblogparser.save()
 
