@@ -116,9 +116,6 @@ class BlogParser (Parser):
         if (self.isafrica == False):
             self.logger.info(self.blog.country + " is not an African country")
 
-    def parseimage (self):
-        self.soup.find()
-
     def getauthorurl (self):
         authorHref = self.soup.find("div", attrs={'class':'profile'}).findNext ('a')['href']
         authorLink = "http://www.travelpod.com" + authorHref

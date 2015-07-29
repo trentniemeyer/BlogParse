@@ -29,18 +29,17 @@ if __name__ == '__main__':
             blogs = mainSection.parsebloglinks();
 
             for blog in blogs:
-                #blog = "http://www.travelpod.com/travel-blog-entries/bridie.sheehan/1/1433692810/tpod.html"
 
                 currentblogparser = TravelPodParser.BlogParser(blog)
-                if (currentblogparser.loaditem(False)):
+                if currentblogparser.loaditem(False):
                     currentblogparser.parseall()
 
                     authorLink = currentblogparser.getauthorurl()
-                    authorparser = TravelPodParser.AuthorParser (authorLink)
+                    authorparser = TravelPodParser.AuthorParser(authorLink)
                     authorparser.loaditem()
                     authorparser.parselogsummary()
 
-                    if (shouldsaveblog(currentblogparser)):
+                    if shouldsaveblog(currentblogparser):
                         currentblogparser.blog.setauthor(authorparser.author)
                         currentblogparser.save()
 
@@ -55,10 +54,10 @@ if __name__ == '__main__':
 
                     for blogurl in tripblogsurls[0:50]:
                         currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
-                        if (currentblogparser.loaditem(False)):
+                        if currentblogparser.loaditem(False):
                             currentblogparser.parseall()
 
-                            if (shouldsaveblog(currentblogparser)):
+                            if shouldsaveblog(currentblogparser):
                                 currentblogparser.blog.setauthor(authorparser.author)
                                 currentblogparser.save()
 

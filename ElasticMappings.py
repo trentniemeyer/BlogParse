@@ -13,7 +13,7 @@ class Blog(DocType):
     thumbnailimage = String(index='not_analyzed')
     postdate = Date()
     length = Integer()
-    lastupdated = Date ()
+    lastupdated = Date()
 
     author = Nested(
         properties={
