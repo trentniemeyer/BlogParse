@@ -14,6 +14,7 @@ class Blog(DocType):
     postdate = Date()
     length = Integer()
     lastupdated = Date()
+    photocount = Integer()
 
     author = Nested(
         properties={

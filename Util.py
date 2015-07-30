@@ -6,10 +6,15 @@ import urllib2
 from elasticsearch_dsl.connections import connections
 from azure.storage import BlobService
 import langid
+from PIL import Image
+import io
+
+import nltk
+from nltk.tag.stanford import NERTagger
 
 config = {
-    'container': 'blogparse',       #blogparse or blogparsedev
-    'eshost': '137.135.93.224'           #localhost or 137.135.93.224
+    'container': 'blogparsedev',       #blogparse or blogparsedev
+    'eshost': 'localhost'           #localhost or 137.135.93.224
 }
 
 connections.create_connection(hosts=[config['eshost']])
@@ -39,12 +44,38 @@ def puttextobjectinazure (strkey, url, data):
         x_ms_meta_name_values={'url':url}
     )
 
-def copywebimageandputinazure (strkey, url):
+def resizeimageandputinazure (strkey, url):
+    maxwidthandheight = 150
+    resize = False
+
+    bytes = io.BytesIO (urllib2.urlopen(url).read())
+    img = Image.open(bytes)
+    newwidth = img.width
+    newheight = img.height
+
+    if (newheight > newwidth and newheight > maxwidthandheight):
+        heightpercent = maxwidthandheight/float(newheight)
+        newheight =  maxwidthandheight
+        newwidth =  int((float(img.width)*float(heightpercent)))
+        resize = True
+    elif (newwidth > newheight and newwidth > maxwidthandheight):
+        widthpercent = maxwidthandheight/float(newwidth)
+        newwidth = maxwidthandheight
+        newheight =  int((float(img.height)*float(widthpercent)))
+        resize = True
+
+    if resize:
+        newimg = img.resize((newwidth, newheight), Image.ANTIALIAS)
+        newimg.format = img.format
+
+        fp = io.BytesIO()
+        newimg.save (fp, 'JPEG')
+        bytes = fp.getvalue()
+
     blob_service = BlobService(account_name='wanderight', account_key='gdmZeJOCx3HYlFPZZukUhHAfeGAu4cfHWGQZc3+HIpkBHjlznUDjhXMl5HWh5MgbjpJF09ZxRaET1JVF9S2MWQ==')
-    buf = urllib2.urlopen(url).read()
-    blob_service.put_block_blob_from_bytes(config['container'], 'images/' + strkey, buf,
-                                           x_ms_blob_content_type='image/jpg', x_ms_meta_name_values={'url':url}
-    )
+    blob_service.put_block_blob_from_bytes(config['container'], 'images/' + strkey, bytes,
+                                           x_ms_blob_content_type='image/jpg', x_ms_meta_name_values={'url':url})
+
 
 def gettextobjectfromazure (strkey):
     blob_service = BlobService(account_name='wanderight', account_key='gdmZeJOCx3HYlFPZZukUhHAfeGAu4cfHWGQZc3+HIpkBHjlznUDjhXMl5HWh5MgbjpJF09ZxRaET1JVF9S2MWQ==')
@@ -66,4 +97,14 @@ def isafrica (location):
         return transformations.cn_to_ctn(location) == 'Africa'
     except:
         return False
+
+#TODO: make NERTagger singleton variable.  load once.
+def nerlocationsandorganizations(text):
+    st = NERTagger("/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz",
+       "/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/stanford-ner.jar")
+    ne = st.tag(nltk.word_tokenize(text))
+    for sentence in ne:
+        for (word, entitytype) in sentence:
+            if entitytype == 'ORGANIZATION' or entitytype == 'LOCATION':
+                print word + ":" + entitytype
 

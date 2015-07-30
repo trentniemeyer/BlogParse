@@ -1,5 +1,4 @@
 import TravelPodParser
-import LoggerConfig
 import logging
 import ElasticMappings
 import Util
@@ -30,7 +29,7 @@ if __name__ == '__main__':
 
             for blog in blogs:
 
-                currentblogparser = TravelPodParser.BlogParser(blog)
+                currentblogparser = TravelPodParser.TravelPodBlogParser(blog)
                 if currentblogparser.loaditem(False):
                     currentblogparser.parseall()
 
@@ -53,7 +52,7 @@ if __name__ == '__main__':
                     logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
 
                     for blogurl in tripblogsurls[0:50]:
-                        currentblogparser = TravelPodParser.BlogParser('http://www.travelpod.com' + blogurl)
+                        currentblogparser = TravelPodParser.TravelPodBlogParser('http://www.travelpod.com' + blogurl)
                         if currentblogparser.loaditem(False):
                             currentblogparser.parseall()
 
