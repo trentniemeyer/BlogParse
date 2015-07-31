@@ -72,3 +72,22 @@ class TravelBlogBlogParser(Parser.BlogParser):
         if tripanchor:
             self.blog.trip = "http://www.travelblog.org" + tripanchor['href']
         return self.blog.trip
+
+class TravelPodAuthorParser (Parser.AuthorParser):
+
+    def parselogsummary (self):
+        self.author.username = self.soup.find('h1', {'class':'tb-banded'}).text
+        table = self.soup.find('table', {'class':'table'})
+        rows = table.findAll('tr')
+        for row in rows:
+            cells = row.findAll ('td')
+            if (cells[0].text == 'Blogs'):
+                self.author.blogcount = cells[1].text
+                break
+
+        photodiv = self.soup.find('div', {'class':re.compile('photo')})
+        self.author.photo = 'https:' + photodiv.find('img')['src']
+
+
+        #photo
+

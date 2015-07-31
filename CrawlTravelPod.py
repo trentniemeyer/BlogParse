@@ -34,7 +34,7 @@ if __name__ == '__main__':
                     currentblogparser.parseall()
 
                     authorLink = currentblogparser.getauthorurl()
-                    authorparser = TravelPodParser.AuthorParser(authorLink)
+                    authorparser = TravelPodParser.TravelPodAuthorParser(authorLink)
                     authorparser.loaditem()
                     authorparser.parselogsummary()
 

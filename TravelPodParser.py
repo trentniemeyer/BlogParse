@@ -64,32 +64,7 @@ class TravelPodBlogParser (Parser.BlogParser):
     def parsetrip (self):
         self.blog.trip = 'http://www.travelpod.com' + self.soup.find("a", attrs={'title' : 'See more entries in this travel blog'})['href']
 
-class AuthorParser (Parser.Parser):
-
-    def loaditem(self, forcereindex = True, cookiedict = None):
-        self.author = ElasticMappings.Author()
-        self.author.url = self.url
-        didload = Parser.loaditem(self, forcereindex, cookiedict)
-        if(self.itemexists()):
-            self.author.get(id=self.itemid)
-        return didload
-
-    def getitemid(self):
-        response = self.client.search(
-            index="authors",
-            body={
-                "query":{
-                    "match": {
-                      "url.rawurl": self.url
-                    }
-                  }
-            }
-        )
-
-        if (len (response['hits']['hits']) > 0):
-            return response['hits']['hits'][0]['_id']
-        else:
-            return False
+class TravelPodAuthorParser (Parser.AuthorParser):
 
     def parselogsummary (self):
         self.author.username = self.soup.find("meta", {"property":"og:title"})['content']
@@ -100,20 +75,6 @@ class AuthorParser (Parser.Parser):
                     blogcount = str(t.string).split(' ')[0]
                     self.author.blogcount = blogcount.translate(None, ",")
         self.author.photo = self.soup.find(id="profile_pic")['src']
-
-    def parsetrips (self):
-        print ("TODO")
-
-    def save (self):
-        if (self.itemexists() == False):
-            if (hasattr(self.author.meta, 'id') == False):
-                authorid = Util.generatebase64uuid()
-                self.author.meta.id = authorid
-            Util.puttextobjectinazure(self.author.meta.id, self.url, self.html)
-        else:
-            self.author.meta.id = self.itemid
-
-        self.author.save()
 
 class AuthorTripParser (Parser.Parser):
     def getitemid(self):

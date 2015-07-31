@@ -98,3 +98,46 @@ class BlogParser (Parser):
 
         self.blog.save()
         return self.blog.meta.id
+
+
+class AuthorParser (Parser):
+
+    def loaditem(self, forcereindex = True, cookiedict = None):
+        self.author = ElasticMappings.Author()
+        self.author.url = self.url
+        didload = Parser.loaditem(self, forcereindex, cookiedict)
+        if(self.itemexists()):
+            self.author.get(id=self.itemid)
+        return didload
+
+    def getitemid(self):
+        response = self.client.search(
+            index="authors",
+            body={
+                "query":{
+                    "match": {
+                      "url.rawurl": self.url
+                    }
+                  }
+            }
+        )
+
+        if (len (response['hits']['hits']) > 0):
+            return response['hits']['hits'][0]['_id']
+        else:
+            return False
+
+    @abc.abstractmethod
+    def parselogsummary (self):
+        return
+
+    def save (self):
+        if (self.itemexists() == False):
+            if (hasattr(self.author.meta, 'id') == False):
+                authorid = Util.generatebase64uuid()
+                self.author.meta.id = authorid
+            Util.puttextobjectinazure(self.author.meta.id, self.url, self.html)
+        else:
+            self.author.meta.id = self.itemid
+
+        self.author.save()

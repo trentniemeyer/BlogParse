@@ -1,7 +1,7 @@
 import logging
 
 import ElasticMappings
-from TravelBlogParser import TravelBlogBlogParser
+from TravelBlogParser import TravelBlogBlogParser, TravelPodAuthorParser
 import Util
 
 
@@ -21,4 +21,9 @@ if __name__ == '__main__':
     currentblogparser = TravelBlogBlogParser(blog)
     currentblogparser.loaditem()
     currentblogparser.parseall()
-    print currentblogparser.save()
+
+    authorparser = TravelPodAuthorParser(currentblogparser.getauthorurl())
+
+    authorparser.loaditem()
+    authorparser.parselogsummary()
+
