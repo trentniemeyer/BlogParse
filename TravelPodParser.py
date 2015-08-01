@@ -76,7 +76,7 @@ class TravelPodAuthorParser (Parser.AuthorParser):
                     self.author.blogcount = blogcount.translate(None, ",")
         self.author.photo = self.soup.find(id="profile_pic")['src']
 
-class AuthorTripParser (Parser.Parser):
+class TravelPodAuthorTripParser (Parser.Parser):
     def getitemid(self):
         return False
 
@@ -86,7 +86,7 @@ class AuthorTripParser (Parser.Parser):
             self.bloglist.append(div.contents[1]['href'])
         return self.bloglist
 
-class MainSectionParser (Parser.Parser):
+class TravelPodMainSectionParser (Parser.Parser):
     def getitemid(self):
         return False
 

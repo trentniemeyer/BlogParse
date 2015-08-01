@@ -1,14 +1,13 @@
-import TravelPodParser
 import logging
+import TravelPodParser
 import ElasticMappings
-import Util
+
 
 def init ():
     ElasticMappings.Blog.init()
     ElasticMappings.Author.init()
 
-def shouldsaveblog(currentblogparser):
-    return currentblogparser.isafrica and Util.istextenglish(currentblogparser.blog.body) and len(currentblogparser.blog.body > 50)
+
 
 if __name__ == '__main__':
 
@@ -21,7 +20,7 @@ if __name__ == '__main__':
         for i in range(0,number,1):
 
             mainurl = 'http://www.travelpod.com/blogs/{0}/{1}.html#'.format(i,country)
-            mainSection = TravelPodParser.MainSectionParser (mainurl)
+            mainSection = TravelPodParser.TravelPodMainSectionParser (mainurl)
             mainSection.loaditem()
 
             logger.info("Parsing Main Section: '{0}'".format(mainurl))
@@ -38,14 +37,14 @@ if __name__ == '__main__':
                     authorparser.loaditem()
                     authorparser.parselogsummary()
 
-                    if shouldsaveblog(currentblogparser):
+                    if currentblogparser.isvalidforindex():
                         currentblogparser.blog.setauthor(authorparser.author)
                         currentblogparser.save()
 
                     authorparser.author.add_blog(currentblogparser.blog)
                     authorparser.save()
 
-                    tripparser = TravelPodParser.AuthorTripParser (currentblogparser.blog.trip)
+                    tripparser = TravelPodParser.TravelPodAuthorTripParser (currentblogparser.blog.trip)
                     tripparser.loaditem()
                     tripblogsurls = tripparser.parsebloglinks()
 
@@ -56,7 +55,7 @@ if __name__ == '__main__':
                         if currentblogparser.loaditem(False):
                             currentblogparser.parseall()
 
-                            if shouldsaveblog(currentblogparser):
+                            if currentblogparser.isvalidforindex():
                                 currentblogparser.blog.setauthor(authorparser.author)
                                 currentblogparser.save()
 

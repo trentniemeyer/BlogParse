@@ -44,6 +44,7 @@ class BlogParser (Parser):
     def loaditem(self, forcereindex = True, cookiedict = None):
         self.blog = ElasticMappings.Blog()
         self.blog.url = self.url
+        self.isafrica = False
         return Parser.loaditem(self, forcereindex, cookiedict)
 
     def getitemid(self):
@@ -84,6 +85,9 @@ class BlogParser (Parser):
         self.parselocation()
         self.getauthorurl()
         self.parsetrip()
+
+    def isvalidforindex(self):
+        return self.isafrica and Util.istextenglish(self.blog.body) and len(self.blog.body) > 50
 
     def save (self):
         if (self.itemexists() == False):
@@ -141,3 +145,4 @@ class AuthorParser (Parser):
             self.author.meta.id = self.itemid
 
         self.author.save()
+        return self.author.meta.id

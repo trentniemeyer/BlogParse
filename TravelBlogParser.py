@@ -2,9 +2,7 @@ import re
 import BeautifulSoup
 from dateutil import parser
 import Parser
-
-__author__ = 'trentniemeyer'
-
+import Util
 
 class TravelBlogBlogParser(Parser.BlogParser):
 
@@ -22,7 +20,7 @@ class TravelBlogBlogParser(Parser.BlogParser):
 
         firstthumbnailimagediv = self.soup.find ('div', {"class":re.compile('photo-blog')})
         if (firstthumbnailimagediv):
-            self.blog.thumbnailimage = 'https:' + firstthumbnailimagediv.findNext('img')['src']
+            self.blog.thumbnailimage = 'https:' + firstthumbnailimagediv.findNext('img')['data-original']
 
         self.blog.title = self.soup.find("h1", {"class":"tb-banded"}).text
 
@@ -71,6 +69,8 @@ class TravelBlogBlogParser(Parser.BlogParser):
         tripanchor = self.soup.find ('a', {'title':'from trip...'})
         if tripanchor:
             self.blog.trip = "http://www.travelblog.org" + tripanchor['href']
+        else:
+            self.blog.trip = None
         return self.blog.trip
 
 class TravelPodAuthorParser (Parser.AuthorParser):
@@ -89,5 +89,45 @@ class TravelPodAuthorParser (Parser.AuthorParser):
         self.author.photo = 'https:' + photodiv.find('img')['src']
 
 
-        #photo
+class TravelBlogAuthorTripParser (Parser.Parser):
+    def getitemid(self):
+        return False
 
+    def parsebloglinks (self):
+        self.bloglist = []
+
+        blogentrytable = self.soup.find('h2').nextSibling
+        rows = blogentrytable.findAll('tr')
+        for row in rows:
+            cells = row.findAll ('td')
+            if (len(cells) == 3):
+                self.bloglist.append('http://www.travelblog.org' + cells[1].findNext ('a')['href'])
+
+        return self.bloglist
+
+class TravelBlogMainSectionParser (Parser.Parser):
+    def getitemid(self):
+        return False
+
+    def parsebloglinks (self, addonlyenglish = False):
+        self.bloglist = []
+
+        leadingblogbrtags = self.soup.findAll('br', {'class':"blog-spacer"})
+        for leadingblogbr in leadingblogbrtags:
+            summary = leadingblogbr.nextSibling
+            if addonlyenglish and Util.istextenglish(summary) == False:
+                continue
+            relativeurl = leadingblogbr.nextSibling.nextSibling['href']
+            self.bloglist.append('http://www.travelblog.org' + relativeurl)
+
+        return self.bloglist
+
+    def getnext (self):
+        paginationlist = self.soup.find ('ul', {'class': 'pagination'})
+        if paginationlist:
+            listelements = paginationlist.findAll('li')
+            if listelements and len(listelements) > 0:
+                 href = listelements[len(listelements) - 1].find('a')['href']
+                 if href== '#':
+                     return False
+                 return href
