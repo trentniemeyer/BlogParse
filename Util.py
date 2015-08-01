@@ -9,8 +9,8 @@ import langid
 from PIL import Image
 import io
 
-import nltk
-from nltk.tag.stanford import NERTagger
+# import nltk
+# from nltk.tag.stanford import NERTagger
 
 config = {
     'container': 'blogparsedev',       #blogparse or blogparsedev
@@ -99,12 +99,12 @@ def isafrica (location):
         return False
 
 #TODO: make NERTagger singleton variable.  load once.
-def nerlocationsandorganizations(text):
-    st = NERTagger("/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz",
-       "/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/stanford-ner.jar")
-    ne = st.tag(nltk.word_tokenize(text))
-    for sentence in ne:
-        for (word, entitytype) in sentence:
-            if entitytype == 'ORGANIZATION' or entitytype == 'LOCATION':
-                print word + ":" + entitytype
+# def nerlocationsandorganizations(text):
+#     st = NERTagger("/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz",
+#        "/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/stanford-ner.jar")
+#     ne = st.tag(nltk.word_tokenize(text))
+#     for sentence in ne:
+#         for (word, entitytype) in sentence:
+#             if entitytype == 'ORGANIZATION' or entitytype == 'LOCATION':
+#                 print word + ":" + entitytype
 
