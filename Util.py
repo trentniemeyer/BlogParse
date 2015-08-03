@@ -49,8 +49,8 @@ def resizeimageandputinazure (strkey, url):
     maxwidthandheight = 150
     resize = False
 
-    bytes = io.BytesIO (urllib2.urlopen(url).read())
-    img = Image.open(bytes)
+    bytes = urllib2.urlopen(url).read()
+    img = Image.open( io.BytesIO (bytes))
     newwidth = img.width
     newheight = img.height
 
@@ -69,9 +69,9 @@ def resizeimageandputinazure (strkey, url):
         newimg = img.resize((newwidth, newheight), Image.ANTIALIAS)
         newimg.format = img.format
 
-        fp = io.BytesIO()
-        newimg.save (fp, 'JPEG')
-        bytes = fp.getvalue()
+        newio = io.BytesIO()
+        newimg.save (newio, 'JPEG')
+        bytes = newio.getvalue()
 
     blob_service = BlobService(account_name='wanderight', account_key='gdmZeJOCx3HYlFPZZukUhHAfeGAu4cfHWGQZc3+HIpkBHjlznUDjhXMl5HWh5MgbjpJF09ZxRaET1JVF9S2MWQ==')
     blob_service.put_block_blob_from_bytes(config['container'], 'images/' + strkey, bytes,
