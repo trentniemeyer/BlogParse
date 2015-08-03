@@ -84,7 +84,13 @@ class Crawler (object):#TODO: Refactor
 
         self.currentblogparser = TravelBlogBlogParser(blogurl)
 
-        if self.currentblogparser.loaditem(False):
+        try:
+            didload = self.currentblogparser.loaditem(False)
+        except:
+            self.logger.exception("Couldn't load blog: {0}".format(self.currentblogparser.blog.url))
+            return False
+
+        if didload:
             try:
                 self.currentblogparser.parseall()
             except:
