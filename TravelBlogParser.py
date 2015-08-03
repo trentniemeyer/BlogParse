@@ -96,7 +96,7 @@ class TravelBlogAuthorTripParser (Parser.Parser):
     def parsebloglinks (self):
         self.bloglist = []
 
-        blogentrytable = self.soup.find('h2').nextSibling
+        blogentrytable = self.soup.find('h2', {'class': 'tb bar'}).nextSibling
         rows = blogentrytable.findAll('tr')
         for row in rows:
             cells = row.findAll ('td')
