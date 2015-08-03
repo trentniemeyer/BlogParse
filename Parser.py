@@ -24,8 +24,8 @@ class Parser (object):
 
     def loaditem (self, forcereindex = True, cookiedict = None):
         if (self.itemid == False):
-            self.html = Util.geturldata(self.url, cookiedict)
             self.logger.info("Parsing: {0}".format(self.url))
+            self.html = Util.geturldata(self.url, cookiedict)
         elif (forcereindex):
             self.html = Util.gettextobjectfromazure(self.itemid)
             self.logger.info("RE-Parsing from Azure".format(self.url))
