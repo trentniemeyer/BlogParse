@@ -52,8 +52,14 @@ class Crawler (object):#TODO: Refactor
 
                             allauthorsurls = authorblogparser.parsebloglinks()
                             self.logger.info("No Trip Found, Parsing {0} ALL blogs for author: {1}".format(len(allauthorsurls),self.authorparser.author.username))
+                            stopparsingauthor = False
                             for authorblog in allauthorsurls:
-                                self.__processblog(authorblog, False, self.isblogdatewithinrange, rangeofdate=lastdate)
+                                if self.__processblog(authorblog, False, self.isblogdatewithinrange, rangeofdate=lastdate) == False:
+                                    stopparsingauthor = True
+                                    break
+
+                            if stopparsingauthor:
+                                break
 
                             currentauthorbloglisturl = authorblogparser.getnext(self.authorparser.url)
 
