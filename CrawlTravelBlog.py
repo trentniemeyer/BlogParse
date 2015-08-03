@@ -53,7 +53,7 @@ class Crawler (object):#TODO: Refactor
                             allauthorsurls = authorblogparser.parsebloglinks()
                             self.logger.info("No Trip Found, Parsing {0} ALL blogs for author: {1}".format(len(allauthorsurls),self.authorparser.author.username))
                             for authorblog in allauthorsurls:
-                                self.__processblog(authorblog, False, self.isblogdatewithinrange, rangeofdate=lastdate, blogdate=self.currentblogparser.blog.postdate)
+                                self.__processblog(authorblog, False, self.isblogdatewithinrange, rangeofdate=lastdate)
 
                             currentauthorbloglisturl = authorblogparser.getnext(self.authorparser.url)
 
@@ -66,8 +66,8 @@ class Crawler (object):#TODO: Refactor
         return self.blogsparsed <= 100 and self.mainurl <> False
 
 
-    def isblogdatewithinrange (self, rangeofdate, blogdate):
-        result = Util.subtractdates(rangeofdate, blogdate)
+    def isblogdatewithinrange (self, rangeofdate):
+        result = Util.subtractdates(rangeofdate, self.currentblogparser.blog.postdate)
         if result  > 30:
             self.logger.info("blog isn't within 'trip' range of 30 days since last post")
             return False
