@@ -79,7 +79,11 @@ class Crawler (object):#TODO: Refactor
         self.currentblogparser = TravelBlogBlogParser(blogurl)
 
         if self.currentblogparser.loaditem(False):
-            self.currentblogparser.parseall()
+            try:
+                self.currentblogparser.parseall()
+            except:
+                self.logger.exception("Couldn't parse blog: {0}".format(self.currentblogparser.blog.url))
+                return False
 
             if resetauthor:
                 self.authorparser = TravelPodAuthorParser(self.currentblogparser.getauthorurl())
