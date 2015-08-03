@@ -131,3 +131,4 @@ class TravelBlogMainSectionParser (Parser.Parser):
                  if href== '#':
                      return False
                  return baseurl + href
+        return False
