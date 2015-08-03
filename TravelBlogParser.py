@@ -122,7 +122,7 @@ class TravelBlogMainSectionParser (Parser.Parser):
 
         return self.bloglist
 
-    def getnext (self):
+    def getnext (self, baseurl):
         paginationlist = self.soup.find ('ul', {'class': 'pagination'})
         if paginationlist:
             listelements = paginationlist.findAll('li')
@@ -130,4 +130,4 @@ class TravelBlogMainSectionParser (Parser.Parser):
                  href = listelements[len(listelements) - 1].find('a')['href']
                  if href== '#':
                      return False
-                 return href
+                 return baseurl + href

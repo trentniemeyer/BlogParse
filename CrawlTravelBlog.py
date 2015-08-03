@@ -56,11 +56,11 @@ class Crawler (object):#TODO: Refactor
                             for authorblog in allauthorsurls:
                                 self.__processblog(authorblog)
 
-                            currentauthorbloglisturl = self.authorparser.url + authorblogparser.getnext()
+                            currentauthorbloglisturl = authorblogparser.getnext(self.authorparser.url)
 
                     self.authorparser.save()
 
-            self.mainurl = self.BASE_URL + sectionparser.getnext()
+            self.mainurl = sectionparser.getnext(self.BASE_URL)
 
 
     def __shouldcontinueparsingmain (self):
