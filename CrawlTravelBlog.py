@@ -30,8 +30,6 @@ class Crawler (object):#TODO: Refactor
 
             for blogurl in sectionparser.parsebloglinks(addonlyenglish=True):
 
-                blogurl = "https://www.travelblog.org/Africa/South-Africa/Mpumalanga-/Sabie/blog-893899.html"
-
                 if self.__processblog (blogurl, True):
 
                     if (self.currentblogparser.blog.trip):
