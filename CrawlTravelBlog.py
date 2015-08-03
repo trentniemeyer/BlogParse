@@ -10,9 +10,6 @@ def init ():
     ElasticMappings.Blog.init()
     ElasticMappings.Author.init()
 
-def shouldcontinue (url, blogsparsedcount):
-    return url <> False and blogsparsedcount <= 100
-
 class Crawler (object):#TODO: Refactor
 
     BASE_URL = "https://www.travelblog.org/Africa/"
@@ -33,6 +30,8 @@ class Crawler (object):#TODO: Refactor
 
             for blogurl in sectionparser.parsebloglinks(addonlyenglish=True):
 
+                blogurl = "https://www.travelblog.org/Africa/South-Africa/Mpumalanga-/Sabie/blog-893899.html"
+
                 if self.__processblog (blogurl, True):
 
                     if (self.currentblogparser.blog.trip):
@@ -47,6 +46,8 @@ class Crawler (object):#TODO: Refactor
                     else:
                         currentauthorbloglisturl = self.authorparser.url
 
+                        lastdate = self.currentblogparser.blog.postdate
+
                         while (currentauthorbloglisturl <> False):
                             authorblogparser = TravelBlogMainSectionParser(currentauthorbloglisturl)
                             authorblogparser.loaditem()
@@ -54,7 +55,7 @@ class Crawler (object):#TODO: Refactor
                             allauthorsurls = authorblogparser.parsebloglinks()
                             self.logger.info("No Trip Found, Parsing {0} ALL blogs for author: {1}".format(len(allauthorsurls),self.authorparser.author.username))
                             for authorblog in allauthorsurls:
-                                self.__processblog(authorblog)
+                                self.__processblog(authorblog, False, self.isblogdatewithinrange, rangeofdate=lastdate, blogdate=self.currentblogparser.blog.postdate)
 
                             currentauthorbloglisturl = authorblogparser.getnext(self.authorparser.url)
 
@@ -66,7 +67,16 @@ class Crawler (object):#TODO: Refactor
     def __shouldcontinueparsingmain (self):
         return self.blogsparsed <= 100 and self.mainurl <> False
 
-    def __processblog (self, blogurl, resetauthor = False):
+
+    def isblogdatewithinrange (self, rangeofdate, blogdate):
+        result = Util.subtractdates(rangeofdate, blogdate)
+        if result  > 30:
+            self.logger.info("blog isn't within 'trip' range of 30 days since last post")
+            return False
+        return True
+
+
+    def __processblog (self, blogurl, resetauthor = False, customsavecheckfunction = None, **functionargs):
 
         self.currentblogparser = TravelBlogBlogParser(blogurl)
 
@@ -78,7 +88,9 @@ class Crawler (object):#TODO: Refactor
                 self.authorparser.loaditem()
                 self.authorparser.parselogsummary()
 
-            if self.currentblogparser.isvalidforindex():
+            if customsavecheckfunction and customsavecheckfunction (**functionargs) == False:
+                self.blogsparsed+=1
+            elif self.currentblogparser.isvalidforindex():
                 self.currentblogparser.blog.setauthor(self.authorparser.author)
                 self.currentblogparser.save()
                 self.blogsparsed+=1

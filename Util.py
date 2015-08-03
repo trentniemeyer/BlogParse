@@ -2,6 +2,7 @@ from incf.countryutils import transformations
 from contextlib import closing
 import uuid
 import urllib2
+from datetime import datetime
 
 from elasticsearch_dsl.connections import connections
 from azure.storage import BlobService
@@ -97,6 +98,10 @@ def isafrica (location):
         return transformations.cn_to_ctn(location) == 'Africa'
     except:
         return False
+
+def subtractdates (datesooner, datelater):
+    diff = datesooner - datelater
+    return int(round(diff.total_seconds() /86400))
 
 #TODO: make NERTagger singleton variable.  load once.
 # def nerlocationsandorganizations(text):
