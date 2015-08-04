@@ -34,3 +34,29 @@ def fixcongo():
     for blog in response:
         blog.country = 'Congo'
         blog.save()
+
+def lowercasecountries ():
+    response = ElasticMappings.Blog.search()[0:4500].execute()
+    processed = 0
+    for blog in response.hits:
+        try:
+            if hasattr(blog, "city"):
+                blog.city = blog.city.lower ()
+            else:
+                blog.city = ""
+            if hasattr(blog, "state"):
+                blog.state = blog.state.lower()
+            else:
+                blog.state = ""
+            if hasattr(blog, "country"):
+                blog.country = blog.country.lower()
+            else:
+                blog.country = ""
+            blog.save()
+            processed+=1
+            if processed%100 == 0:
+                print processed
+        except:
+            print(blog._id)
+
+lowercasecountries ()
