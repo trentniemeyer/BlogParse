@@ -115,7 +115,7 @@ class TravelBlogMainSectionParser (Parser.Parser):
         leadingblogbrtags = self.soup.findAll('br', {'class':"blog-spacer"})
         for leadingblogbr in leadingblogbrtags:
             summary = leadingblogbr.nextSibling
-            if summary is BeautifulSoup.NavigableString:
+            if type(summary) is BeautifulSoup.NavigableString:
                 if addonlyenglish and Util.istextenglish(summary) == False:
                     continue
                 relativeurl = leadingblogbr.nextSibling.nextSibling['href']
