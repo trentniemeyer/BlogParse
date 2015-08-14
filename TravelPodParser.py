@@ -42,12 +42,12 @@ class TravelPodBlogParser (Parser.BlogParser):
         self.blog.state = ''
         self.blog.country = ''
         if (len(locationStack) == 3):
-            self.blog.country = locationStack[2]
-            self.blog.state = locationStack[1]
-            self.blog.city = locationStack[0]
+            self.blog.country = locationStack[2].lower()
+            self.blog.state = locationStack[1].lower()
+            self.blog.city = locationStack[0].lower()
         elif (len(locationStack) == 2):
-            self.blog.country = locationStack[1]
-            self.blog.state = locationStack[0]
+            self.blog.country = locationStack[1].lower()
+            self.blog.state = locationStack[0].lower()
         else:
             raise NotImplementedError("Single location field not handled yet")
 
