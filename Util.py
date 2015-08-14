@@ -10,8 +10,9 @@ import langid
 from PIL import Image
 import io
 
-# import nltk
-# from nltk.tag.stanford import NERTagger
+import nltk
+from nltk.tag.stanford import NERTagger
+import collections
 
 config = {
     'container': 'blogparse',       #blogparse or blogparsedev
@@ -103,13 +104,38 @@ def subtractdates (datesooner, datelater):
     diff = datesooner - datelater
     return int(round(diff.total_seconds() /86400))
 
-#TODO: make NERTagger singleton variable.  load once.
-# def nerlocationsandorganizations(text):
-#     st = NERTagger("/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz",
-#        "/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/stanford-ner.jar")
-#     ne = st.tag(nltk.word_tokenize(text))
-#     for sentence in ne:
-#         for (word, entitytype) in sentence:
-#             if entitytype == 'ORGANIZATION' or entitytype == 'LOCATION':
-#                 print word + ":" + entitytype
+class NERParser (object):
+    def __init__(self):
+        self.st = NERTagger("/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/classifiers/english.muc.7class.distsim.crf.ser.gz",
+            "/Users/trentniemeyer/nltk_data/stanford-ner-2014-06-16/stanford-ner.jar")
+        self.locations = []
+        self.organizations = []
 
+    def parse (self, text):
+        ne = self.st.tag(nltk.word_tokenize(text))
+        for sentence in ne:
+            lastwordwasentity = False
+            lastentity = ''
+            lasttype = ''
+            for (word, entitytype) in sentence:
+                if entitytype == 'ORGANIZATION' or entitytype == 'LOCATION':
+                    if lastwordwasentity:
+                        lastentity += ' ' + word
+                    else:
+                        lastentity = word
+                    lastwordwasentity = True
+                    lasttype = entitytype
+                else:
+                    if lastwordwasentity:
+                        if lasttype == 'LOCATION':
+                            self.locations.append(lastentity)
+                        else:
+                            self.organizations.append(lastentity)
+                    lastentity = ''
+                    lastwordwasentity = False
+
+    def locationFrequencies (self):
+        print collections.Counter (self.locations)
+
+    def organizationFrequencies (self):
+        print collections.Counter (self.organizations)
