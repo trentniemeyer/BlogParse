@@ -47,11 +47,11 @@ class TravelBlogBlogParser(Parser.BlogParser):
         self.blog.country = ''
 
         if len(locationStack) >= 2 and len (locationStack) <=4:
-            self.blog.country = locationStack[1]
+            self.blog.country = locationStack[1].lower()
             if len (locationStack) >= 3:
-                self.blog.state = locationStack[2]
+                self.blog.state = locationStack[2].lower()
             if len (locationStack) == 4:
-                self.blog.city = locationStack[3]
+                self.blog.city = locationStack[3].lower()
         else:
             raise NotImplementedError("Invalid Location")
 
