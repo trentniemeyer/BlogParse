@@ -17,6 +17,8 @@ class TravelPodBlogParser (Parser.BlogParser):
         for t in postBody.contents:
             if type(t) is BeautifulSoup.NavigableString:
                 postBodyText += t
+            elif type(t) is BeautifulSoup.Tag and t.name == 'br':
+                postBodyText += '\n'
 
         firstthumbnailimagediv = self.soup.find('div',  attrs={'class':re.compile('^inline-thumb')})
 
@@ -92,7 +94,7 @@ class TravelPodMainSectionParser (Parser.Parser):
 
     def loaditem(self, forcereindex = True, cookiedict = None):
         cookiedict = {'tweb_order':'time'} #sort by time so we can parse latest first (instead of most popular)
-        Parser.loaditem(self,forcereindex, cookiedict)
+        Parser.Parser.loaditem(self,forcereindex, cookiedict)
 
     def parsebloglinks (self):
         self.bloglist = []
