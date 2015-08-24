@@ -36,7 +36,7 @@ def fixcongo():
         blog.save()
 
 def lowercasecountries ():
-    response = ElasticMappings.Blog.search()[0:4500].execute()
+    response = ElasticMappings.Blog.search()[0:10000].execute()
     processed = 0
     for blog in response.hits:
         try:

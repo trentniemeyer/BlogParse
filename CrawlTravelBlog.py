@@ -12,11 +12,11 @@ def init ():
 
 class Crawler (object):#TODO: Refactor
 
-    BASE_URL = "https://www.travelblog.org/Africa/"
+    BASE_URL = "https://www.travelblog.org/Europe/Croatia/"
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.mainurl = self.BASE_URL + "blogs-page-1.html"
+        self.mainurl = self.BASE_URL + "blogs-page-16.html"
         self.currentblogparser = None
         self.authorparser = None
         self.blogsparsed = 0
@@ -69,7 +69,7 @@ class Crawler (object):#TODO: Refactor
 
 
     def __shouldcontinueparsingmain (self):
-        return self.blogsparsed <= 100 and self.mainurl <> False
+        return  self.mainurl <> False
 
 
     def isblogdatewithinrange (self, rangeofdate):

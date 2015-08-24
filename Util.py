@@ -15,8 +15,8 @@ from nltk.tag.stanford import NERTagger
 import collections
 
 config = {
-    'container': 'blogparse',       #blogparse or blogparsedev
-    'eshost': '137.135.93.224'           #localhost or 137.135.93.224
+    'container': 'blogparsecroatia',       #blogparse or blogparsedev
+    'eshost': 'localhost'           #localhost or 137.135.93.224
 }
 
 connections.create_connection(hosts=[config['eshost']])

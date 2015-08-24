@@ -87,7 +87,8 @@ class BlogParser (Parser):
         self.parsetrip()
 
     def isvalidforindex(self):
-        return self.isafrica and Util.istextenglish(self.blog.body) and len(self.blog.body) > 50
+        return Util.istextenglish(self.blog.body) and len(self.blog.body) > 50
+        #return self.isafrica and Util.istextenglish(self.blog.body) and len(self.blog.body) > 50
 
     def save (self):
         if (self.itemexists() == False):
