@@ -37,7 +37,7 @@ if __name__ == '__main__':
                     if currentblogparser.loaditem(False):
                         currentblogparser.parseall()
 
-                        if (stopparsingcountry(blog)):
+                        if (stopparsingcountry(currentblogparser.blog)):
                             continue
 
                         authorLink = currentblogparser.getauthorurl()
@@ -63,7 +63,7 @@ if __name__ == '__main__':
                             if currentblogparser.loaditem(False):
                                 currentblogparser.parseall()
 
-                                if (stopparsingcountry(blog)):
+                                if (stopparsingcountry(currentblogparser.blog)):
                                     continue
 
                                 if currentblogparser.isvalidforindex():
