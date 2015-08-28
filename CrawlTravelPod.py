@@ -19,57 +19,60 @@ if __name__ == '__main__':
     init()
 
     countries = ['Uganda']
+    number = 0
     for country in countries:
 
-        mainurl = 'http://www.travelpod.com/blogs/{0}/{1}.html#'.format(i,country)
-        mainSection = TravelPodParser.TravelPodMainSectionParser (mainurl)
-        mainSection.loaditem()
+            for i in range(0,1000,1):
 
-        logger.info("Parsing Main Section: '{0}'".format(mainurl))
-        blogs = mainSection.parsebloglinks();
+                mainurl = 'http://www.travelpod.com/blogs/{0}/{1}.html#'.format(i,country)
+                mainSection = TravelPodParser.TravelPodMainSectionParser (mainurl)
+                mainSection.loaditem()
 
-        for blog in blogs:
+                logger.info("Parsing Main Section: '{0}'".format(mainurl))
+                blogs = mainSection.parsebloglinks();
 
-            currentblogparser = TravelPodParser.TravelPodBlogParser(blog)
-            if currentblogparser.loaditem(False):
-                currentblogparser.parseall()
+                for blog in blogs:
 
-                if (stopparsingcountry(blog)):
-                    continue
-
-                authorLink = currentblogparser.getauthorurl()
-                authorparser = TravelPodParser.TravelPodAuthorParser(authorLink)
-                authorparser.loaditem()
-                authorparser.parselogsummary()
-
-                if currentblogparser.isvalidforindex():
-                    currentblogparser.blog.setauthor(authorparser.author)
-                    currentblogparser.save()
-
-                authorparser.author.add_blog(currentblogparser.blog)
-                authorparser.save()
-
-                tripparser = TravelPodParser.TravelPodAuthorTripParser (currentblogparser.blog.trip)
-                tripparser.loaditem()
-                tripblogsurls = tripparser.parsebloglinks()
-
-                logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
-
-                for blogurl in tripblogsurls[0:50]:
-                    currentblogparser = TravelPodParser.TravelPodBlogParser('http://www.travelpod.com' + blogurl)
+                    currentblogparser = TravelPodParser.TravelPodBlogParser(blog)
                     if currentblogparser.loaditem(False):
                         currentblogparser.parseall()
 
                         if (stopparsingcountry(blog)):
                             continue
 
+                        authorLink = currentblogparser.getauthorurl()
+                        authorparser = TravelPodParser.TravelPodAuthorParser(authorLink)
+                        authorparser.loaditem()
+                        authorparser.parselogsummary()
+
                         if currentblogparser.isvalidforindex():
                             currentblogparser.blog.setauthor(authorparser.author)
                             currentblogparser.save()
 
                         authorparser.author.add_blog(currentblogparser.blog)
+                        authorparser.save()
 
-                authorparser.save()
+                        tripparser = TravelPodParser.TravelPodAuthorTripParser (currentblogparser.blog.trip)
+                        tripparser.loaditem()
+                        tripblogsurls = tripparser.parsebloglinks()
+
+                        logger.info("Parsing {0} blogs for author: {1}".format(len(tripblogsurls),authorparser.author.username))
+
+                        for blogurl in tripblogsurls[0:50]:
+                            currentblogparser = TravelPodParser.TravelPodBlogParser('http://www.travelpod.com' + blogurl)
+                            if currentblogparser.loaditem(False):
+                                currentblogparser.parseall()
+
+                                if (stopparsingcountry(blog)):
+                                    continue
+
+                                if currentblogparser.isvalidforindex():
+                                    currentblogparser.blog.setauthor(authorparser.author)
+                                    currentblogparser.save()
+
+                                authorparser.author.add_blog(currentblogparser.blog)
+
+                        authorparser.save()
 
 
 
