@@ -93,6 +93,7 @@ def istextenglish (text):
     return langid.classify(text)[0] == 'en'
 
 def isafrica (location):
+    location = location.capitalize ()
     try:
         if location.startswith('Congo'):
             return True
